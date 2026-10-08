@@ -1,0 +1,47 @@
+# StructCP .gitignore
+# 实验产物与运行期文件不入库；源码 / 脚本 / 文档 应纳入版本管理。
+
+# ---- 数据 / 权重（R1：软链指向 workspace 权威目录，不复制实体）----
+datasets/
+checkpoint/
+weights/
+
+# ---- 实验结果与日志 ----
+outputs/
+logs/
+debug/*.log
+scripts/**/*.log
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+
+# ---- LaTeX 中间产物 ----
+*.aux
+*.bbl
+*.blg
+*.fls
+*.fdb_latexmk
+*.out
+*.synctex.gz
+*.log
+
+# ---- 编辑器 / 系统 ----
+.DS_Store
+.vscode/
+.idea/
+
+# ---- 发布排除：第三方基线仓库（上游可自行 clone）+ 含作者信息的论文文档 ----
+baselines/
+docs/
+figures/
+result/
+results/
+best_model.pkl
+.workbuddy/
+roles/
+datasets/

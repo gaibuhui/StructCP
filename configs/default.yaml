@@ -1,0 +1,63 @@
+# =============================================================================
+# StructCP 默认配置 (configs/default.yaml)
+# -----------------------------------------------------------------------------
+# 说明:
+#   - 本文件集中声明 GAD 数据集路径与推理/保形默认超参。
+#   - 当前 scripts/* 以 argparse 默认值为准；本 yaml 作为单一事实来源 (SSOT)，
+#     由 scripts/run_structcp.py (及后续脚本) 通过 load_config() 在存在时
+#     填充 argparse 默认值，不破坏任何已有 CLI 行为 (CLI 优先级最高)。
+#   - 视觉 AD 数据 (CUB / miniImageNet / cifar100 / AeBAD / HSS-IAD /
+#     KolektorSDD2 / BTAD / VAD / NEU-DET / CEC 等) 不属本项目，已通过软链
+#     指向 RepSim-Fusion/data_raw，见 README "数据归属" 一节，此处不声明。
+# =============================================================================
+
+# ---- 数据集路径 -------------------------------------------------------------
+# 相对 StructCP 根目录。load_gad() 内部已固定 GAD/ 与 TFS/，此处仅作归档声明。
+data:
+  root: "datasets"                 # 数据根目录 (R1: 数据集固定 datasets/)
+  gad_dir: "datasets/GAD"          # Amazon / YelpChi (.mat, CARE-GNN/BWGNN 格式)
+  tfs_dir: "datasets/TFS"          # T-Finance / T-Social (DGL->npz 转换后)
+  dataset_raw: "datasets/Dataset_raw"  # 5 个原始 .mat (BlogCatalog/elliptic/questions/tfinance/tolokers)
+  weibo_pt: "datasets/weibo.pt.zip"   # GAD-NR 真实异常复现用 (pygod 注入)
+
+# 支持的数据集清单 (与 run_structcp.py choices 一致)
+datasets:
+  - Amazon
+  - YelpChi
+  - Elliptic
+  - TFinance
+  - TSocial
+
+# ---- 推理 / 保形默认超参 (对应 run_structcp.py argparse default) -----------
+inference:
+  relation: "homo"          # homo | multi (Elliptic/TFinance/TSocial 强制 homo)
+  k: 10                     # KNN 超边大小 (KNNHypergraph)
+  layers: 2                 # 超图传播层数
+  alpha_res: 0.5            # 超图残差混合系数
+  alpha: 0.05               # 目标 FPR 上界 (split conformal 显著性水平)
+  tau: 0.5                  # 伪正常筛选一致性分位数
+  mode: "hard"              # hard=一致性硬截断 | soft=连续软权重去污染
+  score_quantile: null      # 分数-一致性联合筛选上界; null=纯一致性
+  subsample: null           # TSocial 用 100000 节点子采样
+  knn_only: false           # true 时丢弃稠密边, 仅用 k-NN 边 (绕过 8GB OOM)
+  knn_backbone: 10          # knn_only 时特征 k-NN 边数
+  adaptive_alpha: true      # 默认启用自适应 FPR 目标兜底
+  alpha_max: 0.10           # adaptive_alpha 放宽上限
+  beta: 0.0                 # 社区型高通行滤波强度
+  deg_gate: false           # 超边度自适应门控
+
+# ---- 模型 / 训练默认 --------------------------------------------------------
+model:
+  backbone: "BWGNN"         # 冻结骨干 (Frozen / HG-TTA / StructCP 共用)
+  tune_epochs: 50           # tune_fit 对齐器训练轮数 (仅对齐基线用)
+  device: "cuda"            # 默认 cuda; TSocial/GAD-NR 显存不足时改 cpu
+  num_workers: 0            # R7: 8GB 显存环境固定 0
+
+# ---- 复现随机种子 -----------------------------------------------------------
+seeds: [0, 1, 2]            # 多种子复现 (outputs/structcp_seeds_*.json)
+
+# ---- 输出 ------------------------------------------------------------------
+output:
+  dir: "outputs"
+  figures: "outputs/figures"
+  checkpoint_dir: "checkpoint"

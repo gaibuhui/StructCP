@@ -1,0 +1,24 @@
+# =============================================================================
+# StructCP 依赖（复用 conda 环境 CBP，Python 3.10，torch 2.3.1+cu118）
+# 安装: source /home/lixin/miniconda3/etc/profile.d/conda.sh && conda activate CBP \
+#       && pip install -r requirements.txt
+# 说明: 原论文 BWGNN 依赖 dgl==0.8.1 与 torch 2.3.1 不兼容；本复现基于
+#       torch_geometric 稀疏算子重写 Beta 小波卷积（models/bwgnn.py），数学等价。
+#       已移除未使用依赖：dhg / mapie / networkx / aiohttp / requests（代码零引用）。
+# =============================================================================
+
+# ---- 核心（必装） ----
+torch==2.3.1+cu118
+torch-geometric==2.8.0
+scikit-learn==1.7.2
+scipy==1.15.3
+numpy==1.26.4
+matplotlib
+PyYAML          # utils/config.py 读取 configs/default.yaml（软依赖，建议安装）
+pytest          # tests/ 回归测试
+
+# ---- 可选组 ----
+# dgl         # TUNE 6 数据集加载（data/loader.py load_tune_gad）与数据转换
+# hnswlib     # --approx_knn 近似最近邻（大规模图可扩展性验证）
+# tqdm        # run_grid_search.py 进度条
+# baselines/  # 各基线自带 requirements，见各子目录 README
