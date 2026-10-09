@@ -32,11 +32,24 @@ def load_frozen_detector(
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    ckpt_path = os.path.join(str(root), "checkpoint", f"bwgnn_{dataset}_{relation}.pth")
-    if not os.path.isfile(ckpt_path):
+    # 候选文件名（兼容不同命名约定：pretrain 默认保存 h{hidden}，load 按 relation）
+    ckpt_dir = os.path.join(str(root), "checkpoint")
+    candidates = [
+        f"bwgnn_{dataset}_{relation}.pth",      # 规范命名（relation）
+        f"bwgnn_{dataset}_h64.pth",             # pretrain 默认 hidden=64 的命名
+        f"bwgnn_{dataset}.pth",                 # 无 relation / hidden 后缀
+    ]
+    ckpt_path = next((os.path.join(ckpt_dir, c) for c in candidates
+                      if os.path.isfile(os.path.join(ckpt_dir, c))), None)
+    if ckpt_path is None:
+        if not os.path.isdir(ckpt_dir):
+            raise FileNotFoundError(
+                f"checkpoint 目录不存在: {ckpt_dir}；请先运行 "
+                f"scripts/train/pretrain_bwgnn.py --dataset {dataset}"
+            )
         raise FileNotFoundError(
-            f"checkpoint 不存在: {ckpt_path}；请先运行 scripts/train/pretrain_bwgnn.py "
-            f"--dataset {dataset}"
+            f"checkpoint 不存在: {os.path.join(ckpt_dir, candidates[0])}；"
+            f"已尝试 {candidates}。请先运行 scripts/train/pretrain_bwgnn.py --dataset {dataset}"
         )
     ckpt = torch.load(ckpt_path, map_location=device)
     ca = ckpt["args"]

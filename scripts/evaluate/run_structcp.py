@@ -79,9 +79,10 @@ def main():
     ap.add_argument("--robust_calibration", action="store_true", default=False,
                     help="污染鲁棒校准: 不信任 cal_y, 由超边一致性自清洗 CC")
     ap.add_argument("--weight_mode", type=str, default="contrastive",
-                    choices=["contrastive", "struct", "simple_graph"],
+                    choices=["contrastive", "struct", "simple_graph", "ppr"],
                     help="一致性权重来源: contrastive=对比一致性(默认,替换公式2/3); "
-                         "struct=旧绝对一致性+exp/clip(消融对照); simple_graph=Simple-Graph-CP基线")
+                         "struct=旧绝对一致性+exp/clip(消融对照); simple_graph=Simple-Graph-CP基线; "
+                         "ppr=一致性×PPR全局结构门槛(论文主表配置)")
     ap.add_argument("--device", default=cfg_yaml.get("model", {}).get("device",
                     "cuda" if torch.cuda.is_available() else "cpu"))
     ap.add_argument("--approx_knn", action="store_true", default=False,
@@ -112,7 +113,11 @@ def main():
     print(hdr)
     print("-" * 100)
     for name in METHOD_NAMES:
-        r = results[name]
+        # ppr 模式下方法名为 "StructCP-PPR"（pipeline 按 weight_mode 命名），做键名归一
+        r = results.get(name) or results.get(f"{name}-PPR") or results.get(f"{name}-Dual")
+        if r is None:
+            print(f"  {name:<12} (无结果)")
+            continue
         print(f"{name:<12}{r['AUROC']:>9.4f}{r['AUPRC']:>9.4f}{r['FPR']:>9.4f}"
               f"{r['TPR']:>9.4f}{r['F1']:>9.4f}"
               f"{r.get('FPR_novel_normality', float('nan')):>12.4f}"

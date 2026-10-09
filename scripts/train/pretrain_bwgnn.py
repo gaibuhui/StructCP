@@ -126,6 +126,8 @@ def main():
         best_state = rs.get("best_state")
         print(f"[resume] 从 epoch {start_ep} 续跑, 历史 best_auc={best_auc:.4f}")
 
+    # 提前建目录（续跑点/最终 checkpoint 都可能写入；避免首次运行时父目录缺失）
+    os.makedirs(os.path.join(ROOT, "checkpoint"), exist_ok=True)
     t0 = time.time()
     for ep in range(start_ep, args.epochs + 1):
         model.train()
